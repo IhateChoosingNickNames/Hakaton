@@ -11,7 +11,7 @@ SECRET_KEY = os.getenv("TG_BOT")
 bot = telebot.TeleBot(SECRET_KEY)
 
 commands = ["/get_recipe", "/add_recipe", "/menu", "/greet"]
-recipe = {"params": None, "text": None}
+recipe = {"params": None}
 
 class Command(BaseCommand):
     """Команда для запуска бота."""
@@ -59,9 +59,8 @@ class Command(BaseCommand):
         bot.register_next_step_handler(sent, Command.recipe_maker)
 
     def recipe_maker(self):
-        """Функция создания рецентов."""
-        recipe["text"] = self.text
-        res = add_recipe(*recipe["params"], recipe["text"])
+        res = add_recipe(*recipe["params"], self.text, self.chat.id)
+
         if res == 200:
             bot.send_message(self.chat.id, f'Рецепт успешно создан!', parse_mode='HTML')
         else:
