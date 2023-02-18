@@ -15,7 +15,7 @@
 import telebot, time
 from django.core.management import BaseCommand
 from telebot import types
-from api.views import get_reciper
+from api.views import get_recipe, add_recipe
 
 bot = telebot.TeleBot('6076686900:AAF0h65v2-dTuUDgZs1y6747lceipM0lbOQ')
 
@@ -40,7 +40,7 @@ class Command(BaseCommand):
         bot.delete_message(self.chat.id, self.message_id)
         params = self.text.replace('/get_recipe', '').lstrip()
         if params != "":
-            result = get_reciper(*params.split())
+            result = get_recipe(*params.split())
             for elem in result:
                 bot.send_message(self.chat.id, f'{elem.text}', parse_mode='HTML')
         else:
@@ -60,14 +60,16 @@ class Command(BaseCommand):
 
     def recipe_maker(self):
         recipe["text"] = self.text
-        # вызов фунцкии
-        print(recipe)
-        bot.send_message(self.chat.id, f'Рецепт успешно создан', parse_mode='HTML')
+        res = add_recipe(*recipe["params"], recipe["text"])
+        if res == 200:
+            bot.send_message(self.chat.id, f'Рецепт успешно создан!', parse_mode='HTML')
+        else:
+            bot.send_message(self.chat.id, f'Введены некорретные данные.', parse_mode='HTML')
+
     @bot.message_handler(commands=['menu'])
     def menu(self):
         bot.delete_message(self.chat.id, self.message_id)
         kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
-
         kb.add(*[types.KeyboardButton(text=elem) for elem in commands])
         bot.send_message(self.chat.id, 'Доступные команды:', reply_markup=kb)
 
