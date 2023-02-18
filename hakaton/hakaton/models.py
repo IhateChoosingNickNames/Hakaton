@@ -1,54 +1,60 @@
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 from django.db import models
 
-User = get_user_model()
+# User = get_user_model()
 
 
-class Сuisine(models.Model):
-    title = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+# class Сuisine(models.Model):
+#    '''Класс кухня: европейская, русская, азиатская и т.д.'''
+#     title = models.CharField(max_length=256)
+#     slug = models.SlugField(max_length=50, unique=True)
     
-    def __str__(self):
-        return self.title
-    
+#     def __str__(self):
+#         return self.title
+
+
 class Category(models.Model):
-    title = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
-    
+    '''Класс категории блюд: супы, каши, десерты, напитки и т.д.'''
+    title = models.CharField(max_length=256, unique=True, verbose_name='Название')
+ 
     def __str__(self):
         return self.title
-    
+ 
+   
 class Type(models.Model):
-    title = models.CharField(max_length=256)
-    slug = models.SlugField(max_length=50, unique=True)
+    '''Класс типы блюд: щи, овсяная каша, коктейли и т.д.'''
+    title = models.CharField(max_length=256, unique=True, verbose_name='Название')
     
     def __str__(self):
         return self.title
+
     
 class Recipe(models.Model):
-    cuisine = models.ForeignKey(
-        Сuisine, on_delete=models.SET_NULL, related_name='recipies'
-    )
+    '''Класс рецепты'''
+    # cuisine = models.ForeignKey(
+    #     Сuisine, on_delete=models.SET_NULL, related_name='recipies'
+    # )
     category = models.ForeignKey(
-        Category, on_delete=models.SET_NULL, related_name='recipies'
+        Category, verbose_name='Категории', on_delete=models.CASCADE, related_name='recipies'
     )
     type =  models.ForeignKey(
-        Type, on_delete=models.SET_NULL, related_name='recipies'
+        Type, verbose_name='Типы', on_delete=models.CASCADE, related_name='recipies'
     )
-    title = models.CharField(max_length=200)
-    text = models.TextField()
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='recipies'
-    )
+    title = models.CharField(max_length=200, verbose_name='Название')
+    text = models.TextField(verbose_name='Описание рецепта')
+    # author = models.ForeignKey(
+    #     User, on_delete=models.CASCADE, related_name='recipies'
+    # )
     # score = models.IntegerField(
     #     validators=[MinValueValidator(1), MaxValueValidator(10)]
     # )
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
     # image = models.ImageField(
     #     upload_to='hakaton/', null=True, blank=True)
 
     def __str__(self):
         return self.title
+
 
 # class Ingredient(models.Model):
 #     title = models.CharField(max_length=256)
@@ -56,6 +62,7 @@ class Recipe(models.Model):
     
 #     def __str__(self):
 #         return self.title
+
 
 # class RecipeIngredient(models.Model):
 #     recipe = models.ForeignKey(
