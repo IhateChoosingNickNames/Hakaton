@@ -1,16 +1,4 @@
-# from django.contrib.auth import get_user_model
 from django.db import models
-
-# User = get_user_model()
-
-
-# class Сuisine(models.Model):
-#    '''Класс кухня: европейская, русская, азиатская и т.д.'''
-#     title = models.CharField(max_length=256)
-#     slug = models.SlugField(max_length=50, unique=True)
-    
-#     def __str__(self):
-#         return self.title
 
 
 class Category(models.Model):
@@ -42,10 +30,7 @@ class Author(models.Model):
     
 class Recipe(models.Model):
     '''Класс рецепты'''
-    
-    # cuisine = models.ForeignKey(
-    #     Сuisine, on_delete=models.SET_NULL, related_name='recipies'
-    # )
+
     category = models.ForeignKey(
         Category, verbose_name='Категории', on_delete=models.CASCADE, related_name='recipies'
     )
@@ -66,29 +51,3 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
-
-
-# class Ingredient(models.Model):
-#     title = models.CharField(max_length=256)
-#     slug = models.SlugField(max_length=50, unique=True)
-    
-#     def __str__(self):
-#         return self.title
-
-
-# class RecipeIngredient(models.Model):
-#     recipe = models.ForeignKey(
-#         Recipe,
-#         on_delete=models.CASCADE,
-#         related_name='recipe'
-#     )
-#     ingredient = models.ForeignKey(
-#         Ingredient,
-#         on_delete=models.CASCADE,
-#         related_name='ingredient'
-#     )
-#     class Meta:
-#         constraints = [
-#             models.UniqueConstraint(fields=['recipe', 'ingredient'],
-#                                     name='unique ingredient')
-#         ]
