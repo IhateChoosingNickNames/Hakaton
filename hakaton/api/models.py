@@ -18,6 +18,15 @@ class Type(models.Model):
     def __str__(self):
         return self.title
 
+
+class Author(models.Model):
+    '''Класс типы блюд: щи, овсяная каша, коктейли и т.д.'''
+    
+    id_telegram = models.CharField(max_length=256, unique=True, verbose_name='ID пользователя в телеграм')
+    
+    def __str__(self):
+        return self.id_telegram
+    
     
 class Recipe(models.Model):
     '''Класс рецепты'''
@@ -30,7 +39,9 @@ class Recipe(models.Model):
     )
     title = models.CharField(max_length=200, verbose_name='Название')
     text = models.TextField(verbose_name='Описание рецепта')
-
+    author = models.ForeignKey(
+        Author, on_delete=models.CASCADE, related_name='recipies'
+    )
     pub_date = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
     # image = models.ImageField(
     #     upload_to='hakaton/', null=True, blank=True)
