@@ -59,7 +59,8 @@ class Command(BaseCommand):
         bot.register_next_step_handler(sent, Command.recipe_maker)
 
     def recipe_maker(self):
-        res = add_recipe(*recipe["params"], self.text, self.chat.id)
+        # res = add_recipe(*recipe["params"], self.text, self.chat.id)
+        res = add_recipe(*recipe["params"], self.text)
 
         if res == 200:
             bot.send_message(self.chat.id, f'Рецепт успешно создан!', parse_mode='HTML')

@@ -17,7 +17,7 @@ def get_recipe(category, type_=None, amount=5):
     return recipes[:amount]
 
 
-def add_recipe(category, type_, title, text, author):
+def add_recipe(category, type_, title, text):
     '''Добавляет рецепты.'''
     title, text = title.strip(), text.strip()
     if not title or not text:

@@ -39,9 +39,9 @@ class Recipe(models.Model):
     )
     title = models.CharField(max_length=200, verbose_name='Название')
     text = models.TextField(verbose_name='Описание рецепта')
-    author = models.ForeignKey(
-        Author, on_delete=models.CASCADE, related_name='recipies'
-    )
+    # author = models.ForeignKey(
+    #     Author, on_delete=models.CASCADE, related_name='recipies'
+    # )
     pub_date = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
     # image = models.ImageField(
     #     upload_to='hakaton/', null=True, blank=True)
