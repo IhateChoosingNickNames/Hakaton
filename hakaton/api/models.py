@@ -15,6 +15,7 @@ from django.db import models
 
 class Category(models.Model):
     '''Класс категории блюд: супы, каши, десерты, напитки и т.д.'''
+    
     title = models.CharField(max_length=256, unique=True, verbose_name='Название')
  
     def __str__(self):
@@ -23,6 +24,7 @@ class Category(models.Model):
    
 class Type(models.Model):
     '''Класс типы блюд: щи, овсяная каша, коктейли и т.д.'''
+    
     title = models.CharField(max_length=256, unique=True, verbose_name='Название')
     
     def __str__(self):
@@ -31,6 +33,7 @@ class Type(models.Model):
     
 class Recipe(models.Model):
     '''Класс рецепты'''
+    
     # cuisine = models.ForeignKey(
     #     Сuisine, on_delete=models.SET_NULL, related_name='recipies'
     # )
@@ -51,6 +54,9 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(verbose_name='Дата создания', auto_now_add=True)
     # image = models.ImageField(
     #     upload_to='hakaton/', null=True, blank=True)
+
+    class Meta:
+            ordering = ('-pub_date',)
 
     def __str__(self):
         return self.title
