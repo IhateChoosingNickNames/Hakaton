@@ -2,8 +2,13 @@ import telebot
 from django.core.management import BaseCommand
 from telebot import types
 from api.views import get_recipe, add_recipe
+from dotenv import load_dotenv
+import os
 
-bot = telebot.TeleBot('6076686900:AAF0h65v2-dTuUDgZs1y6747lceipM0lbOQ')
+
+load_dotenv()
+SECRET_KEY = os.getenv("TG_BOT")
+bot = telebot.TeleBot(SECRET_KEY)
 
 commands = ["/get_recipe", "/add_recipe", "/menu", "/greet"]
 recipe = {"params": None, "text": None}
@@ -30,8 +35,10 @@ class Command(BaseCommand):
         """Функция получения рецентов."""
         bot.delete_message(self.chat.id, self.message_id)
         params = self.text.replace('/get_recipe', '').lstrip()
+
         if params != "":
             result = get_recipe(*params.split())
+            # print(result)
             for elem in result:
                 bot.send_message(self.chat.id, f'{elem.text}', parse_mode='HTML')
         else:
