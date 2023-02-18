@@ -7,9 +7,9 @@ def get_recipe(category, type=None, amount=5):
     
     amount = int(amount)
     try:
-        category = Category.objects.get(title=category.lower())
+        category = Category.objects.get(title=category.capitalize())
         if type is not None:
-            type = Type.objects.get(title=type.lower())
+            type = Type.objects.get(title=type.capitalize())
             recipes = Recipe.objects.filter(type=type, category=category)
         else:
             recipes = category.recipies.all()
