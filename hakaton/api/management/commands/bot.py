@@ -1,18 +1,4 @@
-# token for bot 5316090505:AAH_de0luqf2EY3z9qVSknPOFuFfJ8uljCk
-
-# Параметры для handler: 1) commands - непосредственно команды, 2) chat_types = ['supergroup'] или ['private']
-# учет приватности чата 3) content_types = ['photo'], ['video'], ['text'], ['document'] - учет формата ввода 4)
-# regexp = r'[0-9]+' - регулярное выражение 5) func = ... - какая-либо функция.
-
-# 2 handler'а друг над другом - это "или". То есть либо один выполняется, либо другой.
-# Если передавать именованные параметры, то это будет "и". И то, и другое.
-
-# message_handler(filters) - обрабатывает сообщения
-# edited_message_handler(filters) - обрабатывает отредактированные сообщения
-# channel_post_handler(filters) - обрабатывает сообщения канала
-# callback_query_handler(filters) - обрабатывает callback запросы
-
-import telebot, time
+import telebot
 from django.core.management import BaseCommand
 from telebot import types
 from api.views import get_recipe, add_recipe
@@ -23,20 +9,25 @@ commands = ["/get_recipe", "/add_recipe", "/menu", "/greet"]
 recipe = {"params": None, "text": None}
 
 class Command(BaseCommand):
-    help = "Команда для запуска бота"
+    """Команда для запуска бота."""
+
+    help = "Команда для запуска бота python manage.py bot"
 
     def handle(self, *args, **options):
+        """Инциализация бота."""
         bot.enable_save_next_step_handlers(delay=2)
         bot.load_next_step_handlers()
         bot.infinity_polling()
 
     @bot.message_handler(commands=['greet'])
     def start(self):
+        """Фунция приветствия."""
         bot.delete_message(self.chat.id, self.message_id)
         bot.send_message(self.chat.id, f'Greetings, <tg-spoiler>Unknown User</tg-spoiler> !', parse_mode='HTML')
 
     @bot.message_handler(commands=['get_recipe'])
     def recipe(self):
+        """Функция получения рецентов."""
         bot.delete_message(self.chat.id, self.message_id)
         params = self.text.replace('/get_recipe', '').lstrip()
         if params != "":
@@ -49,16 +40,19 @@ class Command(BaseCommand):
 
     @bot.message_handler(commands=['add_recipe'])
     def add_recipe(self):
+        """Функция добавления рецентов."""
         bot.delete_message(self.chat.id, self.message_id)
         sent = bot.send_message(self.chat.id, f'Введите "категорию", "тип", "название" через пробел', parse_mode='HTML')
         bot.register_next_step_handler(sent, Command.params_maker)
 
     def params_maker(self):
+        """Функция получения параметров для рецепта."""
         recipe["params"] = self.text.split()
         sent = bot.send_message(self.chat.id, f'Введите рецепт:', parse_mode='HTML')
         bot.register_next_step_handler(sent, Command.recipe_maker)
 
     def recipe_maker(self):
+        """Функция создания рецентов."""
         recipe["text"] = self.text
         res = add_recipe(*recipe["params"], recipe["text"])
         if res == 200:
@@ -68,6 +62,7 @@ class Command(BaseCommand):
 
     @bot.message_handler(commands=['menu'])
     def menu(self):
+        """Функция получения списка доступных команд."""
         bot.delete_message(self.chat.id, self.message_id)
         kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
         kb.add(*[types.KeyboardButton(text=elem) for elem in commands])
@@ -75,4 +70,5 @@ class Command(BaseCommand):
 
     @bot.message_handler(func=lambda x: x not in commands)
     def wrong(self):
+        """Функция ответа на некорретно введенную команду."""
         bot.reply_to(self, 'Введена некорретная команда.')
