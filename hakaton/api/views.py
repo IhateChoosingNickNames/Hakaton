@@ -29,4 +29,3 @@ def add_recipe(category, type, title, text):
     except (ObjectDoesNotExist, Exception):
         return 404
     return 200
-    

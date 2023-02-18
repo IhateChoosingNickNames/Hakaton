@@ -15,11 +15,12 @@
 import telebot, time
 from django.core.management import BaseCommand
 from telebot import types
-from api.views import get_recipe
+from api.views import get_reciper
 
 bot = telebot.TeleBot('6076686900:AAF0h65v2-dTuUDgZs1y6747lceipM0lbOQ')
 
-commands = ["/start", "/recipe", "/add"]
+commands = ["/get_recipe", "/add_recipe", "/menu", "/greet"]
+recipe = {"params": None, "text": None}
 
 class Command(BaseCommand):
     help = "Команда для запуска бота"
@@ -29,30 +30,46 @@ class Command(BaseCommand):
         bot.load_next_step_handlers()
         bot.infinity_polling()
 
-    @bot.message_handler(commands=['start'])
+    @bot.message_handler(commands=['greet'])
     def start(self):
         bot.delete_message(self.chat.id, self.message_id)
         bot.send_message(self.chat.id, f'Greetings, <tg-spoiler>Unknown User</tg-spoiler> !', parse_mode='HTML')
 
-    @bot.message_handler(commands=['recipe'])
+    @bot.message_handler(commands=['get_recipe'])
     def recipe(self):
         bot.delete_message(self.chat.id, self.message_id)
+        params = self.text.replace('/get_recipe', '').lstrip()
+        if params != "":
+            result = get_reciper(*params.split())
+            for elem in result:
+                bot.send_message(self.chat.id, f'{elem.text}', parse_mode='HTML')
+        else:
+            sent = bot.send_message(self.chat.id, f'Укажите "категорию(обязательно)", "тип(опционально)", "название()" через пробел', parse_mode='HTML')
+            bot.register_next_step_handler(sent, Command.recipe)
 
-        params = self.text.replace('/recipe', '').lstrip().split()
-        result = get_recipe(*params)
-        bot.send_message(self.chat.id, f'{result[0]}', parse_mode='HTML')
-
-    @bot.message_handler(commands=['add'])
+    @bot.message_handler(commands=['add_recipe'])
     def add_recipe(self):
         bot.delete_message(self.chat.id, self.message_id)
+        sent = bot.send_message(self.chat.id, f'Введите "категорию", "тип", "название" через пробел', parse_mode='HTML')
+        bot.register_next_step_handler(sent, Command.params_maker)
 
-        sent = bot.send_message(self.chat.id, f'Введите "категорию", "тип", "название", "рецепт":', parse_mode='HTML')
-        bot.register_next_step_handler(sent, Command.smth)
-        params = self.text.replace('/recipe', '').lstrip().split()
+    def params_maker(self):
+        recipe["params"] = self.text.split()
+        sent = bot.send_message(self.chat.id, f'Введите рецепт:', parse_mode='HTML')
+        bot.register_next_step_handler(sent, Command.recipe_maker)
 
-    def smth(self):
-        params = self.text
+    def recipe_maker(self):
+        recipe["text"] = self.text
+        # вызов фунцкии
+        print(recipe)
         bot.send_message(self.chat.id, f'Рецепт успешно создан', parse_mode='HTML')
+    @bot.message_handler(commands=['menu'])
+    def menu(self):
+        bot.delete_message(self.chat.id, self.message_id)
+        kb = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
+
+        kb.add(*[types.KeyboardButton(text=elem) for elem in commands])
+        bot.send_message(self.chat.id, 'Доступные команды:', reply_markup=kb)
 
     @bot.message_handler(func=lambda x: x not in commands)
     def wrong(self):
