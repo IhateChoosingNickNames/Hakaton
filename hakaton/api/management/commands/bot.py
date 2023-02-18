@@ -12,15 +12,17 @@
 # channel_post_handler(filters) - обрабатывает сообщения канала
 # callback_query_handler(filters) - обрабатывает callback запросы
 
-import telebot, time
+import time
+
+import telebot
+from api.views import add_recipe, get_recipe
 from django.core.management import BaseCommand
 from telebot import types
-from api.views import get_recipe, add_recipe
 
 bot = telebot.TeleBot('6076686900:AAF0h65v2-dTuUDgZs1y6747lceipM0lbOQ')
 
 commands = ["/get_recipe", "/add_recipe", "/menu", "/greet"]
-recipe = {"params": None, "text": None}
+recipe = {"params": None}
 
 class Command(BaseCommand):
     help = "Команда для запуска бота"
@@ -59,8 +61,7 @@ class Command(BaseCommand):
         bot.register_next_step_handler(sent, Command.recipe_maker)
 
     def recipe_maker(self):
-        recipe["text"] = self.text
-        res = add_recipe(*recipe["params"], recipe["text"])
+        res = add_recipe(*recipe["params"], self.text, self.chat.id)
         if res == 200:
             bot.send_message(self.chat.id, f'Рецепт успешно создан!', parse_mode='HTML')
         else:
