@@ -1,5 +1,7 @@
 import datetime
+import json
 
+import requests
 import telebot
 from django.core.management import BaseCommand
 from telebot import types
@@ -45,7 +47,8 @@ class Command(BaseCommand):
         """Фунция приветствия."""
         bot.delete_message(self.chat.id, self.message_id)
         bot.send_message(self.chat.id, f'Приветствую, {self.from_user.first_name}!', parse_mode='HTML')
-        bot.send_message(self.chat.id, f'Для продолжения работы введите: /menu', parse_mode='HTML')
+        msg = bot.send_message(self.chat.id, f'Для продолжения работы введите: /menu', parse_mode='HTML')
+
 
     @bot.message_handler(commands=["get_random_recipe"])
     def get_random_recipe(self):
@@ -87,6 +90,23 @@ class Command(BaseCommand):
     def params_maker(self):
         """Функция получения параметров для рецепта."""
         recipe["params"] = self.text
+        sent = bot.send_message(self.chat.id, f'Загрузите картинку:', parse_mode='HTML')
+        bot.register_next_step_handler(sent, Command.get_photo)
+
+    def get_photo(self):
+        url = f"https://api.telegram.org/bot{SECRET_KEY}/getFile?file_id={self.photo[-1].file_id}"
+
+        res = requests.get(url)
+
+        file_path = json.loads(res.content)["result"]["file_path"]
+
+        template = f"https://api.telegram.org/file/bot{SECRET_KEY}/{file_path}"
+
+        res = requests.get(template)
+
+        with open("tmp.png", "wb") as file:
+            file.write(res.content)
+
         sent = bot.send_message(self.chat.id, f'Введите рецепт:', parse_mode='HTML')
         bot.register_next_step_handler(sent, Command.recipe_maker)
 
@@ -131,7 +151,7 @@ def validate_author_fields(initital_data):
 def parse_input(data):
     data = data.split("*")
     result = {"category": None, "type_": None, "amount": None, "title": None}
-
+    print(data)
     try:
         tmp = int(data[-1])
     except ValueError:
@@ -153,7 +173,7 @@ def parse_input(data):
     if data:
         result["title"] = data[0]
         del data[0]
-
+    print(result)
     return result
 
 

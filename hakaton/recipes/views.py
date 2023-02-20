@@ -1,6 +1,9 @@
+import os
+
 from .exceptions import WrongInputError
 from .models import Category, Recipe, Type, User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files import File
 
 
 def get_my_recipes(author):
@@ -49,6 +52,9 @@ def add_recipe(data):
         category = Category.objects.get(title=category.capitalize())
         type_ = Type.objects.get(title=type_.capitalize())
         author, _ = User.objects.get_or_create(**author)
+
         recipe, _ = Recipe.objects.get_or_create(category=category, type=type_, title=title, text=text, author=author)
+        recipe.image.save("photo.png", File(open('tmp.png', 'rb')))
+        os.remove("tmp.png")
     except Exception:
         raise WrongInputError
