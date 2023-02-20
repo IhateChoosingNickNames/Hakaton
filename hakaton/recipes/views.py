@@ -4,8 +4,8 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 def get_my_recipes(author):
-    # return Recipe.objects.filter(author__username=author)
-    return Recipe.objects.filter(id=11)
+    return Recipe.objects.filter(author__username=author)
+
 
 def get_categories():
     return Category.objects.all()
