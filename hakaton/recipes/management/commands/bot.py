@@ -4,8 +4,9 @@ import telebot
 from django.core.management import BaseCommand
 from telebot import types
 
+from hakaton import settings
 from recipes.exceptions import WrongInputError
-from recipes.views import get_recipe, add_recipe, get_random_recipe, get_types, get_categories
+from recipes.views import get_recipe, add_recipe, get_random_recipe, get_types, get_categories, get_my_recipes
 from dotenv import load_dotenv
 import os
 
@@ -15,7 +16,7 @@ SECRET_KEY = os.getenv("TG_BOT")
 bot = telebot.TeleBot(SECRET_KEY)
 
 
-commands = ["/get_recipe", "/add_recipe", "/menu", "/greet", "/get_random_recipe"]
+commands = ["/get_recipe", "/add_recipe", "/menu", "/start", "/get_random_recipe", "/my_recipes"]
 recipe = {"params": None}
 TIME_OUT = {"last_time_called": None, "delay": datetime.timedelta(seconds=30)}
 
@@ -31,17 +32,27 @@ class Command(BaseCommand):
         bot.load_next_step_handlers()
         bot.infinity_polling()
 
-    @bot.message_handler(commands=['greet'])
-    def greet(self):
+    @bot.message_handler(commands=['my_recipes'])
+    def my_recipes(self):
         """Фунция приветствия."""
         bot.delete_message(self.chat.id, self.message_id)
-        bot.send_message(self.chat.id, f'Greetings, <tg-spoiler>Unknown User</tg-spoiler> !', parse_mode='HTML')
+        result = get_my_recipes(self.from_user.username)
+        bot.send_message(self.chat.id, f'Вывожу посты пользователя {self.from_user.first_name}!', parse_mode='HTML')
+        show_result(result, self)
+
+    @bot.message_handler(commands=['start'])
+    def start(self):
+        """Фунция приветствия."""
+        bot.delete_message(self.chat.id, self.message_id)
+        bot.send_message(self.chat.id, f'Приветствую, {self.from_user.first_name}!', parse_mode='HTML')
+        bot.send_message(self.chat.id, f'Для продолжения работы введите: /menu', parse_mode='HTML')
 
     @bot.message_handler(commands=["get_random_recipe"])
     def get_random_recipe(self):
         bot.delete_message(self.chat.id, self.message_id)
         rnd_recipe = get_random_recipe()
         bot.send_message(self.chat.id, f'***Рандомный рецепт - {rnd_recipe.title}.***', parse_mode='MARKDOWN')
+        bot.send_message(self.chat.id, f'Автор рецепта: <i>{rnd_recipe.author.last_name} {rnd_recipe.author.first_name}</i>, никнейм - <b>{rnd_recipe.author.username}</b>', parse_mode='HTML')
         bot.send_message(self.chat.id, f'{rnd_recipe.text}', parse_mode='HTML')
 
     @bot.message_handler(commands=['get_recipe'])
@@ -57,12 +68,7 @@ class Command(BaseCommand):
                 bot.send_message(self.chat.id, "Введены некорретные данные")
             else:
                 result = get_recipe(parsed)
-                if result:
-                    for index, elem in enumerate(result):
-                        bot.send_message(self.chat.id, f'***{index + 1}. Название рецепта: {elem.title}***', parse_mode='MARKDOWN')
-                        bot.send_message(self.chat.id, f'{elem.text}', parse_mode='HTML')
-                else:
-                    bot.send_message(self.chat.id, f'К сожалению, у нас пока нет рецепта с такими параметрами, попробуйте ввести другие параметры', parse_mode='HTML')
+                show_result(result, self)
         else:
             sent = bot.send_message(self.chat.id, f'Укажите <b>категорию</b>(обязательно), <b>тип</b>(опционально), <b>количество</b>(опционально) через звездочку. Пример: <b>супы*сырный суп*5</b>', parse_mode='HTML')
 
@@ -93,7 +99,7 @@ class Command(BaseCommand):
             bot.send_message(self.chat.id, "Введены некорретные данные")
         else:
             parsed["text"] = self.text
-
+            parsed["author"] = validate_author_fields({"username": self.from_user.username, "first_name": self.from_user.first_name, "last_name": self.from_user.last_name})
             try:
                 res = add_recipe(parsed)
                 bot.send_message(self.chat.id, f'Рецепт успешно создан!', parse_mode='HTML')
@@ -112,6 +118,15 @@ class Command(BaseCommand):
     def wrong(self):
         """Функция ответа на некорретно введенную команду."""
         bot.reply_to(self, 'Введена некорретная команда.')
+
+
+def validate_author_fields(initital_data):
+    validated_data = {}
+    for key, value in initital_data.items():
+        if value is not None:
+            validated_data[key] = value
+    return validated_data
+
 
 def parse_input(data):
     data = data.split("*")
@@ -161,4 +176,23 @@ def show_available_cats_and_types(self):
                      parse_mode='HTML')
     for index, elem in enumerate(recipe_types):
         bot.send_message(self.chat.id, f'{index + 1}. <i>{elem.title}</i>',
+                         parse_mode='HTML')
+
+
+def show_result(result, self):
+    if result:
+        for index, elem in enumerate(result):
+            bot.send_message(self.chat.id,
+                             f'***{index + 1}. Название рецепта: {elem.title}***',
+                             parse_mode='MARKDOWN')
+            bot.send_message(self.chat.id,
+                             f'Автор рецепта: <i>{elem.author.last_name} {elem.author.first_name}</i>, никнейм - <b>{elem.author.username}</b>',
+                             parse_mode='HTML')
+            bot.send_message(self.chat.id, f'Рецепт: {elem.text}', parse_mode='HTML')
+            if elem.image:
+                with open(settings.BASE_DIR + elem.image.url, "rb") as file:
+                    bot.send_photo(self.chat.id, file, "И вот так оно выглядит")
+    else:
+        bot.send_message(self.chat.id,
+                         f'К сожалению, у нас пока нет рецепта с такими параметрами, попробуйте ввести другие параметры',
                          parse_mode='HTML')

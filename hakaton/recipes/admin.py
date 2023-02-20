@@ -5,7 +5,7 @@ from .models import Recipe, Category, Type
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('category', 'type', 'title')
+    list_display = ('category', 'type', 'title', 'image')
     search_fields = ('title', 'text',)
     empty_value_display = '-пусто-'
 

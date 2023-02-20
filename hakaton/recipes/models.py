@@ -1,4 +1,7 @@
+from django.contrib.auth import get_user_model
 from django.db import models
+
+User = get_user_model()
 
 
 class Category(models.Model):
@@ -30,13 +33,18 @@ class Recipe(models.Model):
     )
     title = models.CharField('Название', max_length=200)
     text = models.TextField('Описание рецепта')
-
+    author = models.ForeignKey(User, verbose_name="Автор", on_delete=models.CASCADE)
     pub_date = models.DateTimeField('Дата создания', auto_now_add=True)
-    # image = models.ImageField(
-    #     upload_to='hakaton/', null=True, blank=True)
+    image = models.ImageField(
+        upload_to='images/%Y/%m/%d', null=True, blank=True)
 
     class Meta:
         ordering = ('-pub_date',)
-
+        constraints = (
+            models.UniqueConstraint(
+                fields=('author', 'category', 'type', 'title'),
+                name='unique_follow'
+            ),
+        )
     def __str__(self):
         return self.title
