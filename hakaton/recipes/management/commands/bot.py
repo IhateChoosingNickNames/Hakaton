@@ -151,7 +151,6 @@ def validate_author_fields(initital_data):
 def parse_input(data):
     data = data.split("*")
     result = {"category": None, "type_": None, "amount": None, "title": None}
-    print(data)
     try:
         tmp = int(data[-1])
     except ValueError:
@@ -173,7 +172,7 @@ def parse_input(data):
     if data:
         result["title"] = data[0]
         del data[0]
-    print(result)
+
     return result
 
 
